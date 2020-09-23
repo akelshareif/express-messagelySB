@@ -1,3 +1,9 @@
+const express = require('express');
+const router = new express.Router();
+
+const { ensureLoggedIn, ensureCorrectUser } = require('../middleware/auth');
+const Message = require('../models/message');
+
 /** GET /:id - get detail of message.
  *
  * => {message: {id,
@@ -11,6 +17,15 @@
  *
  **/
 
+router.get('/:id', ensureCorrectUser, async (req, res, next) => {
+    try {
+        const message = await Message.get(req.params.id);
+
+        return res.status(200).json({ message });
+    } catch (e) {
+        next(e);
+    }
+});
 
 /** POST / - post message.
  *
@@ -19,6 +34,17 @@
  *
  **/
 
+router.post('/', ensureLoggedIn, async (req, res, next) => {
+    try {
+        const { to_username, body } = req.body;
+
+        const message = await Message.create({ from_username: req.user.username, to_username, body });
+
+        return res.status(201).json({ message });
+    } catch (e) {
+        next(e);
+    }
+});
 
 /** POST/:id/read - mark message as read:
  *
@@ -28,3 +54,14 @@
  *
  **/
 
+router.post('/:id/read', ensureCorrectUser, async (req, res, next) => {
+    try {
+        const message = await Message.markRead(req.params.id);
+
+        return res.status(200).json({ message });
+    } catch (e) {
+        next(e);
+    }
+});
+
+module.exports = router;

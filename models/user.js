@@ -1,7 +1,6 @@
 /** User class for message.ly */
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { SECRET_KEY, BCRYPT_WORK_FACTOR } = require('../config');
+const { BCRYPT_WORK_FACTOR } = require('../config');
 const db = require('../db');
 const ExpressError = require('../expressError');
 
@@ -52,6 +51,10 @@ class User {
              RETURNING last_login_at`,
             [username]
         );
+
+        if (!result.rows[0]) {
+            throw new ExpressError(`Error: ${username} not found`, 404);
+        }
     }
 
     /** All: basic info on all users:
